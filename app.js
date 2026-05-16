@@ -4,7 +4,7 @@ const DEFAULT_OWNER = "小陈";
 const APP_VERSION = {
   number: "v0.8.0",
   updatedAt: "2026-05-16",
-  summary: "升级为更完整的 AI 产品化界面，并优化总览信息层次"
+  summary: "收敛首屏文案，强化 AI 产品感"
 };
 
 const seedData = {
@@ -209,10 +209,10 @@ function renderMetrics(projects) {
   const urgentTasks = allTasks.filter((task) => task.priority === "高" && task.status !== "已完成").length;
 
   const cards = [
-    { label: "AI 项目", value: totalProjects, note: "当前工作区内已纳入 AI 管理的项目数量" },
-    { label: "任务总数", value: totalTasks, note: "包含待处理、进行中和已完成的全部任务" },
-    { label: "进行中", value: doingTasks, note: "正在推进中的任务，是今天最需要同步的部分" },
-    { label: "待优先处理", value: urgentTasks, note: "高优先级且尚未完成，建议优先跟进" }
+    { label: "AI 项目", value: totalProjects, note: "当前项目数" },
+    { label: "任务总数", value: totalTasks, note: "全部任务" },
+    { label: "进行中", value: doingTasks, note: "正在推进" },
+    { label: "待优先处理", value: urgentTasks, note: "高优先任务" }
   ];
 
   metrics.innerHTML = cards
@@ -240,8 +240,8 @@ function renderWorkspaceSummary(projects) {
       ? `${nextProject.name} 值得优先推进`
       : "AI 正在等待新的项目指令";
     heroFocusText.textContent = nextProject
-      ? `当前还有 ${pendingTasks(nextProject).length} 条未完成任务，负责人 ${nextProject.owner}。最适合继续追问“${nextProject.name} 下一步做什么”。`
-      : "先创建或导入项目，系统就会自动生成今日焦点和推进摘要。";
+      ? `还有 ${pendingTasks(nextProject).length} 条任务待推进。`
+      : "创建或导入项目后自动生成焦点。";
   }
 
   if (heroInsights) {
@@ -249,12 +249,12 @@ function renderWorkspaceSummary(projects) {
       {
         label: "完成率",
         value: allTasks.length ? `${Math.round((completedCount / allTasks.length) * 100)}%` : "0%",
-        note: "按全部任务计算"
+        note: "全部任务"
       },
       {
         label: "待推进",
         value: pendingCount,
-        note: urgentTask ? `高优先任务: ${urgentTask.title}` : "当前没有高优先阻塞"
+        note: urgentTask ? `优先: ${urgentTask.title}` : "暂无高优先"
       }
     ];
 
@@ -276,9 +276,9 @@ function renderWorkspaceSummary(projects) {
     const newestUpdate = projects.flatMap((project) => latestUpdates(project, 1)).at(0);
 
     boardSummary.innerHTML = [
-      `负责人覆盖 ${owners} 人`,
-      pendingCount ? `还有 ${pendingCount} 条任务待推进` : "当前任务都已完成",
-      newestUpdate ? `最近同步: ${newestUpdate.createdAt}` : "还没有项目进展记录"
+      `负责人 ${owners} 人`,
+      pendingCount ? `待推进 ${pendingCount}` : "已全部完成",
+      newestUpdate ? `最近 ${newestUpdate.createdAt}` : "暂无进展"
     ]
       .map((item) => `<span>${item}</span>`)
       .join("");

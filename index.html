@@ -66,15 +66,15 @@
           <span class="brand-pill">AI Native</span>
         </div>
         <h1>DeepSeek 项目台</h1>
-        <p class="subtle">像真正的 AI 产品一样工作: 直接说一句话，系统就能理解项目、更新状态、整理下一步和沉淀进展。</p>
+        <p class="subtle">一句话管理项目。</p>
         <div class="brand-grid">
           <article>
             <strong>自然语言控制</strong>
-            <span>不切页面，不找字段，像和助手对话一样管理项目。</span>
+            <span>直接说，系统自动处理。</span>
           </article>
           <article>
             <strong>移动端优先</strong>
-            <span>核心操作都聚焦在第一屏，适合手机和轻量团队协作。</span>
+            <span>核心操作保持在第一屏。</span>
           </article>
         </div>
       </div>
@@ -95,7 +95,7 @@
             </button>
             <div class="voice-copy">
               <p class="voice-title">语音优先 AI 指挥台</p>
-              <p id="voiceStatus" class="voice-status">点一下开始持续收音，再点一下结束。比如：“DeepSeek 销售助手目前完成了什么”</p>
+              <p id="voiceStatus" class="voice-status">点一下开始，再点一下结束。</p>
               <div class="voice-hints">
                 <span>查项目进度</span>
                 <span>改负责人</span>
@@ -103,17 +103,17 @@
               </div>
             </div>
           </div>
-          <div id="aiFeedback" class="ai-feedback">AI 会优先判断你是在查进度、问下一步、记录新进展，还是直接修改项目信息。</div>
+          <div id="aiFeedback" class="ai-feedback">查进度、记进展、改信息，都可以直接说。</div>
           <div id="aiResult" class="ai-result" aria-live="polite"></div>
           <details id="secondaryTools" class="secondary-tools">
-            <summary>查看文字内容和 AI 快捷入口</summary>
+            <summary>文字输入</summary>
             <div class="secondary-tools-body">
               <label class="transcript-panel">
                 <span>AI 收到的语音内容</span>
                 <textarea
                   id="aiInput"
                   rows="3"
-                  placeholder="这里会自动显示语音识别结果，也可以作为备用文本入口"
+                  placeholder="输入一句话"
                 ></textarea>
               </label>
               <div class="quick-chips" id="quickChips">
@@ -135,7 +135,7 @@
         <div class="section-head">
           <div>
             <p class="mini-label">Bulk Import</p>
-            <h2>上传 Excel，AI 自动拆解成项目工作台</h2>
+            <h2>上传表格，自动生成项目</h2>
           </div>
         </div>
         <div class="stack">
@@ -144,11 +144,10 @@
             <input id="importFile" type="file" accept=".xlsx,.xls,.csv">
           </label>
           <div class="import-tips">
-            <span>支持列名：项目名、负责人、截止日期、说明、任务、状态、优先级</span>
-            <span>如果只有原始描述，系统也会尽量自动拆成项目说明和首个任务</span>
+            <span>支持项目名、负责人、日期、任务等常见列。</span>
           </div>
           <button id="importButton" type="button">导入到系统</button>
-          <div id="importFeedback" class="ai-feedback">把旧项目表拖进来后，系统会先读取 Excel，再自动拆解成当前项目卡片和任务。</div>
+          <div id="importFeedback" class="ai-feedback">导入后会自动生成项目和任务。</div>
         </div>
       </section>
 
@@ -240,8 +239,8 @@
             <span class="hero-badge ghost-badge">Simple. Fast. Mobile.</span>
           </div>
           <p class="mini-label">AI 驱动项目管理</p>
-          <h2>一个会听懂团队项目语言的 AI 工作台</h2>
-          <p class="subtle">不再让团队去适应表单。你只需要说“现在做到哪了”“把负责人改成小陈”“同步一下最新进展”，系统会自动识别、执行并整理上下文。</p>
+          <h2>会听懂项目语言的 AI 工作台</h2>
+          <p class="subtle">少输入，少切换，直接推进工作。</p>
           <div class="hero-points">
             <span>语音创建项目</span>
             <span>语音修改信息</span>
@@ -253,7 +252,7 @@
           <div class="hero-glow-card">
             <p class="mini-label">今日焦点</p>
             <h3 id="heroFocusTitle">AI 正在整理项目脉络</h3>
-            <p id="heroFocusText" class="subtle">页面会根据当前项目和任务状态，自动给出今天最值得关注的推进点。</p>
+            <p id="heroFocusText" class="subtle">自动聚焦当前最重要的推进点。</p>
           </div>
           <div id="heroInsights" class="hero-insights"></div>
         </div>
