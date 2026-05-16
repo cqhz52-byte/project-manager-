@@ -36,6 +36,28 @@ body {
     linear-gradient(180deg, #f9f4ec 0%, var(--bg) 100%);
 }
 
+.release-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: 10px 14px 0;
+}
+
+.release-bar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: min(100%, 1320px);
+  margin: 0 auto;
+  padding: 10px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(75, 61, 46, 0.1);
+  background: rgba(255, 252, 247, 0.84);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 30px rgba(83, 56, 29, 0.08);
+}
+
 h1,
 h2,
 h3,
@@ -109,6 +131,7 @@ h2 {
 }
 
 .ai-panel,
+.import-panel,
 .form-panel,
 .board-panel,
 .hero {
@@ -350,6 +373,26 @@ button:hover {
 .ai-result.is-visible {
   display: grid;
   gap: 12px;
+}
+
+.import-picker input[type="file"] {
+  padding: 12px;
+  border: 1px dashed rgba(13, 138, 114, 0.24);
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.import-tips {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.import-tips span {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(13, 138, 114, 0.06);
 }
 
 .secondary-tools,
@@ -681,6 +724,16 @@ button:hover {
 }
 
 @media (max-width: 759px) {
+  .release-bar {
+    padding: 10px 12px 0;
+  }
+
+  .release-bar-inner {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 10px 12px;
+  }
+
   .brand .subtle,
   .hero,
   .topbar,
