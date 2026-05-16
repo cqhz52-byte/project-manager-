@@ -7,6 +7,12 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
+  <div class="release-bar">
+    <div class="release-bar-inner">
+      <strong id="versionTag">版本加载中</strong>
+      <span id="versionMeta">正在读取版本信息</span>
+    </div>
+  </div>
   <div class="shell">
     <aside class="sidebar">
       <div class="brand">
@@ -59,6 +65,27 @@
               </div>
             </div>
           </details>
+        </div>
+      </section>
+
+      <section class="panel import-panel">
+        <div class="section-head">
+          <div>
+            <p class="mini-label">原始项目导入</p>
+            <h2>上传 Excel，AI 自动拆解几十个项目</h2>
+          </div>
+        </div>
+        <div class="stack">
+          <label class="import-picker">
+            <span>选择项目表</span>
+            <input id="importFile" type="file" accept=".xlsx,.xls,.csv">
+          </label>
+          <div class="import-tips">
+            <span>支持列名：项目名、负责人、截止日期、说明、任务、状态、优先级</span>
+            <span>如果只有原始描述，系统也会尽量自动拆成项目说明和首个任务</span>
+          </div>
+          <button id="importButton" type="button">导入到系统</button>
+          <div id="importFeedback" class="ai-feedback">把旧项目表拖进来后，系统会先读取 Excel，再自动拆解成当前项目卡片和任务。</div>
         </div>
       </section>
 
@@ -223,6 +250,7 @@
     </article>
   </template>
 
+  <script type="text/javascript" src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
