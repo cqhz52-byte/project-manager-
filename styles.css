@@ -109,7 +109,6 @@ button {
 }
 
 .release-label,
-.eyebrow,
 .mini-label,
 .ai-result-label {
   font-size: 12px;
@@ -123,7 +122,6 @@ button {
 }
 
 .release-version,
-.brand-pill,
 .hero-badge,
 .project-tag,
 .priority-pill,
@@ -262,7 +260,6 @@ button {
   pointer-events: none;
 }
 
-.brand-topline,
 .hero-kicker {
   display: flex;
   flex-wrap: wrap;
@@ -270,11 +267,6 @@ button {
   gap: 10px;
 }
 
-.eyebrow {
-  color: #8bc6ff;
-}
-
-.brand-pill,
 .hero-badge,
 .project-tag,
 .chip,
@@ -286,7 +278,6 @@ button {
   font-weight: 800;
 }
 
-.brand-pill,
 .hero-badge,
 .project-tag,
 .ai-badge {
@@ -338,31 +329,6 @@ h3 {
   margin-top: 12px;
   line-height: 1.7;
   color: var(--muted-strong);
-}
-
-.brand-grid {
-  display: grid;
-  gap: 12px;
-  margin-top: 22px;
-}
-
-.brand-grid article {
-  display: grid;
-  gap: 6px;
-  padding: 14px 16px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.brand-grid strong {
-  font-size: 15px;
-}
-
-.brand-grid span {
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--muted);
 }
 
 .panel {

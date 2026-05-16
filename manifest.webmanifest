@@ -2,7 +2,7 @@
   "name": "DeepSeek 项目台",
   "short_name": "项目台",
   "description": "一个支持语音、导入和桌面安装的 AI 项目管理工作台。",
-  "start_url": "./index.html?appVersion=v0.9.0",
+  "start_url": "./index.html?appVersion=v0.10.1",
   "scope": "./",
   "display": "standalone",
   "background_color": "#07111f",

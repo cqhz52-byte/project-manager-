@@ -1,11 +1,11 @@
-const CACHE_NAME = "deepseek-project-board-v0.10.0";
+const CACHE_NAME = "deepseek-project-board-v0.10.1";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./index.html?appVersion=v0.10.0",
-  "./styles.css?v=v0.10.0",
-  "./app.js?v=v0.10.0",
-  "./manifest.webmanifest?v=v0.10.0",
+  "./index.html?appVersion=v0.10.1",
+  "./styles.css?v=v0.10.1",
+  "./app.js?v=v0.10.1",
+  "./manifest.webmanifest?v=v0.10.1",
   "./manifest.webmanifest",
   "./version.json",
   "./icons/icon-192.png",

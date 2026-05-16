@@ -4,9 +4,9 @@ const DEFAULT_OWNER = "小陈";
 const INSTALL_DISMISSED_KEY = "simple-project-manager-install-dismissed-v1";
 const VERSION_ENDPOINT = "./version.json";
 const APP_VERSION = {
-  number: "v0.10.0",
+  number: "v0.10.1",
   updatedAt: "2026-05-16",
-  summary: "更新提示"
+  summary: "精简首页"
 };
 
 const seedData = {
@@ -558,7 +558,7 @@ async function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
 
   try {
-    await navigator.serviceWorker.register("./sw.js?v=v0.10.0");
+    await navigator.serviceWorker.register("./sw.js?v=v0.10.1");
   } catch (error) {
     console.error("Service worker registration failed:", error);
   }
