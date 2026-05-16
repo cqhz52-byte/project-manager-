@@ -44,12 +44,12 @@
   <div class="release-bar">
     <div class="release-bar-inner">
       <div class="release-copy">
-        <span class="release-label">当前版本</span>
+        <span class="release-label">版本</span>
         <strong id="versionTag" class="release-version">版本加载中</strong>
       </div>
       <div class="release-actions">
-        <span id="versionMeta" class="release-meta">正在读取版本信息</span>
-        <button id="installAppButton" class="ghost install-button is-hidden" type="button">安装桌面版</button>
+        <span id="versionMeta" class="release-meta">加载中</span>
+        <button id="installAppButton" class="ghost install-button is-hidden" type="button">安装</button>
       </div>
     </div>
   </div>
@@ -57,8 +57,8 @@
     <div class="update-banner-inner">
       <div class="update-banner-copy">
         <span class="update-pill">发现新版本</span>
-        <strong id="updateBannerTitle">检测到可更新版本</strong>
-        <p id="updateBannerText">点击更新后会刷新到最新版本。</p>
+        <strong id="updateBannerTitle">可更新</strong>
+        <p id="updateBannerText">刷新到最新版</p>
       </div>
       <button id="updateAppButton" type="button">立即更新</button>
     </div>
@@ -71,15 +71,15 @@
           <span class="brand-pill">AI Native</span>
         </div>
         <h1>DeepSeek 项目台</h1>
-        <p class="subtle">一句话管理项目。</p>
+        <p class="subtle">一句话管理。</p>
         <div class="brand-grid">
           <article>
-            <strong>自然语言控制</strong>
-            <span>直接说，系统自动处理。</span>
+            <strong>语音控制</strong>
+            <span>直接说。</span>
           </article>
           <article>
-            <strong>移动端优先</strong>
-            <span>核心操作保持在第一屏。</span>
+            <strong>移动优先</strong>
+            <span>保持轻量。</span>
           </article>
         </div>
       </div>
@@ -108,10 +108,10 @@
               </div>
             </div>
           </div>
-          <div id="aiFeedback" class="ai-feedback">查进度、记进展、改信息，都可以直接说。</div>
+          <div id="aiFeedback" class="ai-feedback">直接说。</div>
           <div id="aiResult" class="ai-result" aria-live="polite"></div>
           <details id="secondaryTools" class="secondary-tools">
-            <summary>文字输入</summary>
+            <summary>输入</summary>
             <div class="secondary-tools-body">
               <label class="transcript-panel">
                 <span>AI 收到的语音内容</span>
@@ -140,7 +140,7 @@
         <div class="section-head">
           <div>
             <p class="mini-label">Bulk Import</p>
-            <h2>上传表格，自动生成项目</h2>
+            <h2>导入项目</h2>
           </div>
         </div>
         <div class="stack">
@@ -149,10 +149,10 @@
             <input id="importFile" type="file" accept=".xlsx,.xls,.csv">
           </label>
           <div class="import-tips">
-            <span>支持项目名、负责人、日期、任务等常见列。</span>
+            <span>支持常见列。</span>
           </div>
           <button id="importButton" type="button">导入到系统</button>
-          <div id="importFeedback" class="ai-feedback">导入后会自动生成项目和任务。</div>
+          <div id="importFeedback" class="ai-feedback">导入后自动生成。</div>
         </div>
       </section>
 
@@ -243,19 +243,19 @@
             <span class="hero-badge">AI Workflow OS</span>
             <span class="hero-badge ghost-badge">Simple. Fast. Mobile.</span>
           </div>
-          <p class="mini-label">AI 驱动项目管理</p>
-          <h2>会听懂项目语言的 AI 工作台</h2>
-          <p class="subtle">少输入，少切换，直接推进工作。</p>
+          <p class="mini-label">AI Workboard</p>
+          <h2>项目工作台</h2>
+          <p class="subtle">少输入，少切换。</p>
           <div class="hero-points">
             <span>语音创建项目</span>
             <span>语音修改信息</span>
             <span>语音更新进度</span>
-            <span>自动整理下一步</span>
+            <span>下一步</span>
           </div>
         </div>
         <div class="hero-side">
           <div class="hero-glow-card">
-            <p class="mini-label">今日焦点</p>
+            <p class="mini-label">Focus</p>
             <h3 id="heroFocusTitle">AI 正在整理项目脉络</h3>
             <p id="heroFocusText" class="subtle">自动聚焦当前最重要的推进点。</p>
           </div>
@@ -285,7 +285,7 @@
       <section class="panel board-panel">
         <div class="section-head">
           <div>
-            <p class="mini-label">Workspace Overview</p>
+            <p class="mini-label">Overview</p>
             <h2>项目总览</h2>
           </div>
           <button id="resetData" class="ghost" type="button">恢复示例数据</button>
@@ -314,7 +314,7 @@
       </div>
       <div class="project-focus"></div>
       <details class="project-details">
-        <summary>查看全部任务</summary>
+        <summary>全部任务</summary>
         <div class="project-detail-list"></div>
       </details>
     </article>

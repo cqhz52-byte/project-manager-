@@ -6,7 +6,7 @@ const VERSION_ENDPOINT = "./version.json";
 const APP_VERSION = {
   number: "v0.10.0",
   updatedAt: "2026-05-16",
-  summary: "支持新版本检测和手动更新提示"
+  summary: "更新提示"
 };
 
 const seedData = {
@@ -446,7 +446,7 @@ function setAiResult(html = "") {
 
 function renderVersionInfo() {
   versionTag.textContent = APP_VERSION.number;
-  versionMeta.textContent = `${APP_VERSION.updatedAt} · ${APP_VERSION.summary}`;
+  versionMeta.textContent = APP_VERSION.updatedAt;
 }
 
 function setUpdateBannerVisible(visible) {
@@ -456,11 +456,11 @@ function setUpdateBannerVisible(visible) {
 
 function updateVersionBanner(version, summary = "") {
   availableUpdateVersion = version;
-  if (updateBannerTitle) updateBannerTitle.textContent = `发现 ${version} 新版本`;
+  if (updateBannerTitle) updateBannerTitle.textContent = `${version}`;
   if (updateBannerText) {
     updateBannerText.textContent = summary
-      ? `${summary}，点击后刷新到最新版。`
-      : "点击更新后会刷新到最新版本。";
+      ? summary
+      : "刷新后更新";
   }
   setUpdateBannerVisible(true);
 }
