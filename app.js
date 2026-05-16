@@ -2,9 +2,9 @@ const STORAGE_KEY = "simple-project-manager-data-v3";
 const STATUSES = ["待处理", "进行中", "已完成"];
 const DEFAULT_OWNER = "小陈";
 const APP_VERSION = {
-  number: "v0.7.0",
+  number: "v0.7.2",
   updatedAt: "2026-05-16",
-  summary: "新增顶部版本栏、Excel 项目导入、手机端持续语音收音"
+  summary: "启动时先做版本校验，并主动绕开浏览器缓存"
 };
 
 const seedData = {
@@ -354,7 +354,7 @@ function setAiResult(html = "") {
 }
 
 function renderVersionInfo() {
-  versionTag.textContent = `当前版本 ${APP_VERSION.number}`;
+  versionTag.textContent = APP_VERSION.number;
   versionMeta.textContent = `${APP_VERSION.updatedAt} · ${APP_VERSION.summary}`;
 }
 
