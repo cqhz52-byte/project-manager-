@@ -94,6 +94,8 @@ const aiCreateButton = document.querySelector("#aiCreateButton");
 const aiFillProjectButton = document.querySelector("#aiFillProjectButton");
 const aiFeedback = document.querySelector("#aiFeedback");
 const aiResult = document.querySelector("#aiResult");
+const voiceButton = document.querySelector("#voiceButton");
+const voiceStatus = document.querySelector("#voiceStatus");
 const quickChips = document.querySelector("#quickChips");
 const projectNameInput = document.querySelector("#projectName");
 const projectOwnerInput = document.querySelector("#projectOwner");
@@ -101,6 +103,8 @@ const projectDeadlineInput = document.querySelector("#projectDeadline");
 const projectSummaryInput = document.querySelector("#projectSummary");
 
 let state = loadState();
+let recognition = null;
+let isListening = false;
 
 function ensureProjectShape(project) {
   if (!Array.isArray(project.tasks)) project.tasks = [];
@@ -334,6 +338,17 @@ function setAiResult(html = "") {
   aiResult.classList.toggle("is-visible", Boolean(html));
 }
 
+function setVoiceStatus(message) {
+  voiceStatus.textContent = message;
+}
+
+function setListeningState(listening) {
+  isListening = listening;
+  voiceButton.classList.toggle("is-listening", listening);
+  voiceButton.setAttribute("aria-pressed", String(listening));
+  voiceButton.querySelector(".voice-core").textContent = listening ? "正在听" : "按住说话";
+}
+
 function addProject(event) {
   event.preventDefault();
   const formData = new FormData(projectForm);
@@ -471,6 +486,7 @@ function aiDraftFromText(text) {
 function detectAiIntent(text) {
   if (/(目前完成了什么|现在做到哪|项目进度|进展如何|完成了什么)/.test(text)) return "progress";
   if (/(下一步|接下来做什么|还要做什么)/.test(text)) return "next";
+  if (/(改成|修改成|更新为|负责人改|截止日期改|项目名改|说明改|简介改)/.test(text)) return "modify";
   if (/(记一下进度|更新进度|刚完成|已经完成|完成了|新增进展|同步一下)/.test(text)) return "update";
   return "capture";
 }
@@ -506,6 +522,40 @@ function addProjectUpdate(project, content) {
     createdAt: formatTimestamp(),
     content
   });
+}
+
+function updateProjectFromCommand(project, text) {
+  const originalName = project.name;
+  const changes = [];
+
+  const renamed = text.match(/项目名改成[：:\s]*([^\n，。]+)/);
+  if (renamed?.[1]) {
+    project.name = renamed[1].trim();
+    changes.push(`项目名改为「${project.name}」`);
+  }
+
+  const owner = text.match(/负责人改成[：:\s]*([^\s，。,]+)/);
+  if (owner?.[1]) {
+    project.owner = owner[1].trim();
+    changes.push(`负责人改为 ${project.owner}`);
+  }
+
+  const deadline = text.match(/(?:截止|截止日期|日期)改(?:成|到)[：:\s]*(20\d{2}-\d{2}-\d{2})/);
+  if (deadline?.[1]) {
+    project.deadline = deadline[1];
+    changes.push(`截止日期改为 ${project.deadline}`);
+  }
+
+  const summary = text.match(/(?:说明|简介|定位)改成[：:\s]*([^]+)$/);
+  if (summary?.[1]) {
+    project.summary = summary[1].trim();
+    changes.push("项目说明已更新");
+  }
+
+  if (!changes.length) return null;
+
+  addProjectUpdate(project, `${originalName} 已更新：${changes.join("，")}。`);
+  return changes;
 }
 
 function renderProgressAnswer(project) {
@@ -560,20 +610,20 @@ function fillProjectFormFromAi() {
   projectOwnerInput.value = draft.owner;
   projectDeadlineInput.value = draft.deadline;
   projectSummaryInput.value = draft.summary;
-  setAiFeedback("我已经把内容预填到项目表单里了，你可以直接补两下再保存。");
+  setAiFeedback("我已经把内容同步到备用表单里了，正常情况下你其实不需要再手动输入。");
 }
 
 function addAiRecord() {
   const text = aiInput.value.trim();
   if (!text) {
-    setAiFeedback("你可以直接说“某某项目目前完成了什么”或“某某项目刚完成首屏文案，帮我记一下进度”。");
+    setAiFeedback("你可以直接说“新建一个 AI 客服项目”或“把官网改版负责人改成小陈”。");
     return;
   }
 
   const intent = detectAiIntent(text);
   const matchedProject = findProjectByText(text);
 
-  if ((intent === "progress" || intent === "next" || intent === "update") && !matchedProject) {
+  if ((intent === "progress" || intent === "next" || intent === "update" || intent === "modify") && !matchedProject) {
     setAiResult("");
     setAiFeedback("我听出来你是在查项目或记进展，但还没准确匹配到项目名，可以把项目名说得更完整一点。");
     return;
@@ -609,6 +659,28 @@ function addAiRecord() {
     return;
   }
 
+  if (intent === "modify" && matchedProject) {
+    const changes = updateProjectFromCommand(matchedProject, text);
+    if (!changes) {
+      setAiFeedback("我识别到你想修改项目，但这句话里还缺少明确字段，比如负责人、截止日期、项目名或说明。");
+      return;
+    }
+
+    saveState();
+    renderBoard();
+    aiInput.value = "";
+    setAiResult(`
+      <div class="ai-result-card">
+        <div class="ai-result-label">AI 已修改</div>
+        <div class="ai-result-title">${matchedProject.name} 的项目信息已更新</div>
+        <div class="ai-result-copy">你不需要打开表单，直接说修改指令就可以完成更新。</div>
+        <div class="ai-result-list">${changes.map((item) => `<span>${item}</span>`).join("")}</div>
+      </div>
+    `);
+    setAiFeedback(`我已经按你的指令更新了「${matchedProject.name}」。`);
+    return;
+  }
+
   const draft = aiDraftFromText(text);
 
   if (draft.kind === "project" || !state.projects.length) {
@@ -632,7 +704,7 @@ function addAiRecord() {
     renderBoard();
     aiInput.value = "";
     setAiResult("");
-    setAiFeedback(`AI 已帮你新建项目「${draft.title || "AI 新项目"}」，后面可以直接一句话问进度或加进展。`);
+    setAiFeedback(`AI 已帮你新建项目「${draft.title || "AI 新项目"}」，后面可以直接语音问进度、改信息或加进展。`);
     return;
   }
 
@@ -653,6 +725,63 @@ function addAiRecord() {
   setAiFeedback(`AI 已把这条内容加入「${project.name}」作为任务，适合手机上快速连续记录。`);
 }
 
+function ensureSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) return null;
+  if (recognition) return recognition;
+
+  recognition = new SpeechRecognition();
+  recognition.lang = "zh-CN";
+  recognition.interimResults = true;
+  recognition.continuous = false;
+
+  recognition.addEventListener("start", () => {
+    setListeningState(true);
+    setVoiceStatus("正在听你说话，停下来后会自动识别并执行。");
+  });
+
+  recognition.addEventListener("result", (event) => {
+    let transcript = "";
+    for (let i = event.resultIndex; i < event.results.length; i += 1) {
+      transcript += event.results[i][0].transcript;
+    }
+    aiInput.value = transcript.trim();
+  });
+
+  recognition.addEventListener("end", () => {
+    const hasText = aiInput.value.trim();
+    setListeningState(false);
+    setVoiceStatus(hasText ? "语音识别完成，AI 已准备执行。" : "没有识别到清晰内容，可以再说一次。");
+    if (hasText) addAiRecord();
+  });
+
+  recognition.addEventListener("error", (event) => {
+    setListeningState(false);
+    setVoiceStatus(`语音识别暂时不可用：${event.error}`);
+    setAiFeedback("当前浏览器没有成功返回语音内容，你可以稍后再试，或临时用备用文本入口。");
+  });
+
+  return recognition;
+}
+
+function toggleVoiceRecognition() {
+  const speech = ensureSpeechRecognition();
+  if (!speech) {
+    setVoiceStatus("当前浏览器不支持语音识别，建议用 Chrome 打开这个页面。");
+    setAiFeedback("这个原型已经按无键盘方式设计好了，但当前环境还不支持直接语音识别。");
+    return;
+  }
+
+  if (isListening) {
+    speech.stop();
+    return;
+  }
+
+  aiInput.value = "";
+  setAiResult("");
+  speech.start();
+}
+
 projectForm.addEventListener("submit", addProject);
 taskForm.addEventListener("submit", addTask);
 searchInput.addEventListener("input", renderBoard);
@@ -661,12 +790,13 @@ statusFilter.addEventListener("change", renderBoard);
 resetDataButton.addEventListener("click", resetSeedData);
 aiCreateButton.addEventListener("click", addAiRecord);
 aiFillProjectButton.addEventListener("click", fillProjectFormFromAi);
+voiceButton.addEventListener("click", toggleVoiceRecognition);
 
 quickChips.addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLButtonElement)) return;
   aiInput.value = target.dataset.prompt || "";
-  setAiFeedback("示例指令已填入，你可以直接执行，也可以先改一下再提交。");
+  setAiFeedback("示例指令已填入，你可以直接执行；真实使用时更适合直接说出来。");
 });
 
 renderBoard();
