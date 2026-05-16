@@ -105,6 +105,7 @@ const projectSummaryInput = document.querySelector("#projectSummary");
 let state = loadState();
 let recognition = null;
 let isListening = false;
+let voiceStartTimer = null;
 
 function ensureProjectShape(project) {
   if (!Array.isArray(project.tasks)) project.tasks = [];
@@ -346,7 +347,13 @@ function setListeningState(listening) {
   isListening = listening;
   voiceButton.classList.toggle("is-listening", listening);
   voiceButton.setAttribute("aria-pressed", String(listening));
-  voiceButton.querySelector(".voice-core").textContent = listening ? "正在听" : "按住说话";
+  voiceButton.querySelector(".voice-core").textContent = listening ? "正在听" : "点击说话";
+}
+
+function clearVoiceStartTimer() {
+  if (!voiceStartTimer) return;
+  clearTimeout(voiceStartTimer);
+  voiceStartTimer = null;
 }
 
 function addProject(event) {
@@ -736,6 +743,7 @@ function ensureSpeechRecognition() {
   recognition.continuous = false;
 
   recognition.addEventListener("start", () => {
+    clearVoiceStartTimer();
     setListeningState(true);
     setVoiceStatus("正在听你说话，停下来后会自动识别并执行。");
   });
@@ -749,6 +757,7 @@ function ensureSpeechRecognition() {
   });
 
   recognition.addEventListener("end", () => {
+    clearVoiceStartTimer();
     const hasText = aiInput.value.trim();
     setListeningState(false);
     setVoiceStatus(hasText ? "语音识别完成，AI 已准备执行。" : "没有识别到清晰内容，可以再说一次。");
@@ -756,6 +765,7 @@ function ensureSpeechRecognition() {
   });
 
   recognition.addEventListener("error", (event) => {
+    clearVoiceStartTimer();
     setListeningState(false);
     setVoiceStatus(`语音识别暂时不可用：${event.error}`);
     setAiFeedback("当前浏览器没有成功返回语音内容，你可以稍后再试，或临时用备用文本入口。");
@@ -779,7 +789,22 @@ function toggleVoiceRecognition() {
 
   aiInput.value = "";
   setAiResult("");
-  speech.start();
+  setVoiceStatus("正在请求麦克风权限并准备开始识别...");
+  clearVoiceStartTimer();
+  voiceStartTimer = setTimeout(() => {
+    setListeningState(false);
+    setVoiceStatus("语音入口没有正常启动，可能是浏览器权限、系统麦克风权限，或当前环境不支持完整识别。");
+    setAiFeedback("建议先确认浏览器麦克风权限已允许；如果还是没有反应，可以先用下方文本备用入口，我也可以继续帮你接入更稳的原生语音方案。");
+  }, 4000);
+
+  try {
+    speech.start();
+  } catch (error) {
+    clearVoiceStartTimer();
+    setListeningState(false);
+    setVoiceStatus(`语音识别启动失败：${error.message}`);
+    setAiFeedback("语音功能没有成功启动，当前先不要继续点麦克风按钮了，我建议先检查浏览器麦克风权限。");
+  }
 }
 
 projectForm.addEventListener("submit", addProject);
