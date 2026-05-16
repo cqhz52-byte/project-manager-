@@ -1,6 +1,11 @@
 const STORAGE_KEY = "simple-project-manager-data-v3";
 const STATUSES = ["待处理", "进行中", "已完成"];
 const DEFAULT_OWNER = "小陈";
+const APP_VERSION = {
+  number: "v0.7.0",
+  updatedAt: "2026-05-16",
+  summary: "新增顶部版本栏、Excel 项目导入、手机端持续语音收音"
+};
 
 const seedData = {
   projects: [
@@ -94,9 +99,15 @@ const aiCreateButton = document.querySelector("#aiCreateButton");
 const aiFillProjectButton = document.querySelector("#aiFillProjectButton");
 const aiFeedback = document.querySelector("#aiFeedback");
 const aiResult = document.querySelector("#aiResult");
+const versionTag = document.querySelector("#versionTag");
+const versionMeta = document.querySelector("#versionMeta");
 const voiceButton = document.querySelector("#voiceButton");
 const voiceStatus = document.querySelector("#voiceStatus");
 const quickChips = document.querySelector("#quickChips");
+const secondaryTools = document.querySelector("#secondaryTools");
+const importFile = document.querySelector("#importFile");
+const importButton = document.querySelector("#importButton");
+const importFeedback = document.querySelector("#importFeedback");
 const projectNameInput = document.querySelector("#projectName");
 const projectOwnerInput = document.querySelector("#projectOwner");
 const projectDeadlineInput = document.querySelector("#projectDeadline");
@@ -106,6 +117,9 @@ let state = loadState();
 let recognition = null;
 let isListening = false;
 let voiceStartTimer = null;
+let voiceRestartTimer = null;
+let shouldKeepListening = false;
+let shouldSubmitAfterStop = false;
 
 function ensureProjectShape(project) {
   if (!Array.isArray(project.tasks)) project.tasks = [];
@@ -339,21 +353,36 @@ function setAiResult(html = "") {
   aiResult.classList.toggle("is-visible", Boolean(html));
 }
 
+function renderVersionInfo() {
+  versionTag.textContent = `当前版本 ${APP_VERSION.number}`;
+  versionMeta.textContent = `${APP_VERSION.updatedAt} · ${APP_VERSION.summary}`;
+}
+
 function setVoiceStatus(message) {
   voiceStatus.textContent = message;
+}
+
+function setImportFeedback(message) {
+  importFeedback.textContent = message;
 }
 
 function setListeningState(listening) {
   isListening = listening;
   voiceButton.classList.toggle("is-listening", listening);
   voiceButton.setAttribute("aria-pressed", String(listening));
-  voiceButton.querySelector(".voice-core").textContent = listening ? "正在听" : "点击说话";
+  voiceButton.querySelector(".voice-core").textContent = listening ? "停止收音" : "开始收音";
 }
 
 function clearVoiceStartTimer() {
   if (!voiceStartTimer) return;
   clearTimeout(voiceStartTimer);
   voiceStartTimer = null;
+}
+
+function clearVoiceRestartTimer() {
+  if (!voiceRestartTimer) return;
+  clearTimeout(voiceRestartTimer);
+  voiceRestartTimer = null;
 }
 
 function addProject(event) {
@@ -461,6 +490,155 @@ function detectStatus(text) {
   if (/(已完成|完成了|done)/i.test(text)) return "已完成";
   if (/(进行中|开始|推进|处理中)/.test(text)) return "进行中";
   return "待处理";
+}
+
+function normalizeHeader(text) {
+  return String(text || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[()（）:_\-]/g, "");
+}
+
+function findField(row, aliases) {
+  const keys = Object.keys(row);
+  const hit = keys.find((key) => aliases.includes(normalizeHeader(key)));
+  return hit ? String(row[hit] || "").trim() : "";
+}
+
+function parseDateValue(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+
+  const normalized = text.replace(/[./]/g, "-");
+  const directMatch = normalized.match(/(20\d{2}-\d{1,2}-\d{1,2})/);
+  if (directMatch) {
+    const [year, month, day] = directMatch[1].split("-");
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+  }
+
+  return "";
+}
+
+function splitTasks(text) {
+  return String(text || "")
+    .split(/[\n；;、|]/)
+    .map((item) => item.replace(/^\d+[.)、\s]*/, "").trim())
+    .filter(Boolean);
+}
+
+function buildProjectFromImportedRow(row) {
+  const projectName = findField(row, ["项目名", "项目名称", "name", "project", "projectname", "需求名称"]);
+  const owner = findField(row, ["负责人", "owner", "ownername", "assignee"]) || DEFAULT_OWNER;
+  const deadline = parseDateValue(findField(row, ["截止日期", "deadline", "date", "due", "duedate"]));
+  const summary =
+    findField(row, ["说明", "项目说明", "简介", "summary", "desc", "description", "需求描述", "备注"]) ||
+    findField(row, ["原始内容", "内容", "content", "text"]);
+  const rawTasks =
+    findField(row, ["任务", "tasks", "task", "todo", "待办", "拆解任务", "下一步"]) ||
+    summary;
+  const priority = detectPriority(
+    findField(row, ["优先级", "priority"]) || summary
+  );
+  const status = detectStatus(
+    findField(row, ["状态", "status"]) || summary
+  );
+
+  if (!projectName && !summary) return null;
+
+  const taskItems = splitTasks(rawTasks).slice(0, 6);
+  const tasks = taskItems.map((title, index) => ({
+    id: crypto.randomUUID(),
+    title: title || `任务 ${index + 1}`,
+    assignee: owner,
+    priority,
+    status: index === 0 ? status : "待处理",
+    note: summary || "由 Excel 原始项目导入后自动拆解"
+  }));
+
+  return {
+    id: crypto.randomUUID(),
+    name: projectName || (summary ? summary.slice(0, 18) : "导入项目"),
+    owner,
+    deadline,
+    summary: summary || "由 Excel 原始项目表自动导入",
+    updates: [
+      {
+        id: crypto.randomUUID(),
+        createdAt: formatTimestamp(),
+        content: "项目已通过原始 Excel 导入，系统已自动拆解成项目说明和初始任务。"
+      }
+    ],
+    tasks
+  };
+}
+
+async function readImportWorkbook(file) {
+  const buffer = await file.arrayBuffer();
+  if (globalThis.XLSX) {
+    return XLSX.read(buffer, { type: "array" });
+  }
+
+  const text = new TextDecoder("utf-8").decode(buffer);
+  return {
+    SheetNames: ["Sheet1"],
+    Sheets: {
+      Sheet1: text
+    },
+    __csvFallback: true
+  };
+}
+
+function workbookToRows(workbook) {
+  if (workbook.__csvFallback) {
+    const [headerLine, ...lines] = workbook.Sheets.Sheet1.split(/\r?\n/).filter(Boolean);
+    if (!headerLine) return [];
+    const headers = headerLine.split(",").map((item) => item.trim());
+    return lines.map((line) => {
+      const values = line.split(",");
+      return headers.reduce((record, header, index) => {
+        record[header] = values[index] || "";
+        return record;
+      }, {});
+    });
+  }
+
+  const firstSheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[firstSheetName];
+  return XLSX.utils.sheet_to_json(sheet, { defval: "" });
+}
+
+async function importProjectsFromFile() {
+  const file = importFile.files?.[0];
+  if (!file) {
+    setImportFeedback("先选择一个 Excel 或 CSV 文件，我再帮你拆项目。");
+    return;
+  }
+
+  setImportFeedback("正在读取原始项目表，并自动拆解项目结构...");
+
+  try {
+    const workbook = await readImportWorkbook(file);
+    const rows = workbookToRows(workbook);
+    const importedProjects = rows
+      .map(buildProjectFromImportedRow)
+      .filter(Boolean);
+
+    if (!importedProjects.length) {
+      setImportFeedback("这份表里还没有识别到可导入的项目行，建议至少保留项目名或项目说明列。");
+      return;
+    }
+
+    state.projects = [...importedProjects, ...state.projects];
+    saveState();
+    renderBoard();
+
+    const taskCount = importedProjects.reduce((sum, project) => sum + project.tasks.length, 0);
+    setImportFeedback(`已导入 ${importedProjects.length} 个项目，自动拆出 ${taskCount} 条任务。现在你可以继续用语音追问这些项目的进度。`);
+    setAiFeedback("原始项目表已经进入系统，后续就可以直接按项目名语音查询和更新。");
+  } catch (error) {
+    setImportFeedback(`导入失败：${error.message}`);
+  }
 }
 
 function aiDraftFromText(text) {
@@ -740,17 +918,18 @@ function ensureSpeechRecognition() {
   recognition = new SpeechRecognition();
   recognition.lang = "zh-CN";
   recognition.interimResults = true;
-  recognition.continuous = false;
+  recognition.continuous = true;
 
   recognition.addEventListener("start", () => {
     clearVoiceStartTimer();
+    clearVoiceRestartTimer();
     setListeningState(true);
-    setVoiceStatus("正在听你说话，停下来后会自动识别并执行。");
+    setVoiceStatus("正在持续收音，再点一次就会结束并提交给 AI。");
   });
 
   recognition.addEventListener("result", (event) => {
     let transcript = "";
-    for (let i = event.resultIndex; i < event.results.length; i += 1) {
+    for (let i = 0; i < event.results.length; i += 1) {
       transcript += event.results[i][0].transcript;
     }
     aiInput.value = transcript.trim();
@@ -758,20 +937,76 @@ function ensureSpeechRecognition() {
 
   recognition.addEventListener("end", () => {
     clearVoiceStartTimer();
+    clearVoiceRestartTimer();
+
+    if (shouldKeepListening) {
+      setVoiceStatus("保持收音中，正在继续听...");
+      voiceRestartTimer = setTimeout(() => {
+        startVoiceRecognition();
+      }, 180);
+      return;
+    }
+
     const hasText = aiInput.value.trim();
     setListeningState(false);
-    setVoiceStatus(hasText ? "语音识别完成，AI 已准备执行。" : "没有识别到清晰内容，可以再说一次。");
-    if (hasText) addAiRecord();
+
+    if (!hasText) {
+      shouldSubmitAfterStop = false;
+      setVoiceStatus("这次没有识别到清晰内容，可以直接再点一次继续说。");
+      return;
+    }
+
+    if (shouldSubmitAfterStop) {
+      shouldSubmitAfterStop = false;
+      setVoiceStatus("已停止收音，AI 正在整理并执行。");
+      addAiRecord();
+      return;
+    }
+
+    setVoiceStatus("语音内容已经保留，你可以继续说，或手动点执行。");
   });
 
   recognition.addEventListener("error", (event) => {
     clearVoiceStartTimer();
+    clearVoiceRestartTimer();
+    if (event.error === "aborted" && shouldSubmitAfterStop) {
+      return;
+    }
+    shouldKeepListening = false;
+    shouldSubmitAfterStop = false;
     setListeningState(false);
     setVoiceStatus(`语音识别暂时不可用：${event.error}`);
     setAiFeedback("当前浏览器没有成功返回语音内容，你可以稍后再试，或临时用备用文本入口。");
   });
 
   return recognition;
+}
+
+function startVoiceRecognition() {
+  const speech = ensureSpeechRecognition();
+  if (!speech) return false;
+
+  clearVoiceStartTimer();
+  voiceStartTimer = setTimeout(() => {
+    shouldKeepListening = false;
+    shouldSubmitAfterStop = false;
+    setListeningState(false);
+    setVoiceStatus("语音入口没有正常启动，可能是浏览器权限、系统麦克风权限，或当前环境不支持完整识别。");
+    setAiFeedback("建议先确认浏览器麦克风权限已允许；如果还是没有反应，可以先展开备用入口，用文字输入继续操作。");
+  }, 4000);
+
+  try {
+    speech.start();
+    return true;
+  } catch (error) {
+    clearVoiceStartTimer();
+    shouldKeepListening = false;
+    shouldSubmitAfterStop = false;
+    setListeningState(false);
+    setVoiceStatus(`语音识别启动失败：${error.message}`);
+    setAiFeedback("语音功能没有成功启动，建议先检查浏览器麦克风权限。");
+    return false;
+  }
 }
 
 function toggleVoiceRecognition() {
@@ -783,28 +1018,22 @@ function toggleVoiceRecognition() {
   }
 
   if (isListening) {
+    shouldKeepListening = false;
+    shouldSubmitAfterStop = true;
+    clearVoiceRestartTimer();
+    clearVoiceStartTimer();
+    setVoiceStatus("正在停止收音并整理语音内容...");
     speech.stop();
     return;
   }
 
   aiInput.value = "";
   setAiResult("");
-  setVoiceStatus("正在请求麦克风权限并准备开始识别...");
-  clearVoiceStartTimer();
-  voiceStartTimer = setTimeout(() => {
-    setListeningState(false);
-    setVoiceStatus("语音入口没有正常启动，可能是浏览器权限、系统麦克风权限，或当前环境不支持完整识别。");
-    setAiFeedback("建议先确认浏览器麦克风权限已允许；如果还是没有反应，可以先用下方文本备用入口，我也可以继续帮你接入更稳的原生语音方案。");
-  }, 4000);
-
-  try {
-    speech.start();
-  } catch (error) {
-    clearVoiceStartTimer();
-    setListeningState(false);
-    setVoiceStatus(`语音识别启动失败：${error.message}`);
-    setAiFeedback("语音功能没有成功启动，当前先不要继续点麦克风按钮了，我建议先检查浏览器麦克风权限。");
-  }
+  shouldKeepListening = true;
+  shouldSubmitAfterStop = false;
+  setVoiceStatus("正在请求麦克风权限并准备开始持续收音...");
+  setAiFeedback("现在的语音入口会一直听，直到你再次点按钮为止。");
+  startVoiceRecognition();
 }
 
 projectForm.addEventListener("submit", addProject);
@@ -816,6 +1045,7 @@ resetDataButton.addEventListener("click", resetSeedData);
 aiCreateButton.addEventListener("click", addAiRecord);
 aiFillProjectButton.addEventListener("click", fillProjectFormFromAi);
 voiceButton.addEventListener("click", toggleVoiceRecognition);
+importButton.addEventListener("click", importProjectsFromFile);
 
 quickChips.addEventListener("click", (event) => {
   const target = event.target;
@@ -824,4 +1054,12 @@ quickChips.addEventListener("click", (event) => {
   setAiFeedback("示例指令已填入，你可以直接执行；真实使用时更适合直接说出来。");
 });
 
+function syncResponsivePanels() {
+  if (!secondaryTools) return;
+  secondaryTools.open = window.innerWidth >= 760;
+}
+
+window.addEventListener("resize", syncResponsivePanels);
+syncResponsivePanels();
+renderVersionInfo();
 renderBoard();
