@@ -841,38 +841,34 @@ button:active {
 }
 
 .project-summary {
-  margin: 16px 0;
-  line-height: 1.75;
+  margin: 14px 0 0;
+  line-height: 1.65;
   color: var(--muted-strong);
 }
 
-.project-updates {
-  display: grid;
-  gap: 10px;
-  margin: 0 0 16px;
+.project-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0;
 }
 
-.update-item {
-  padding: 12px 13px;
-  border-radius: 16px;
-}
-
-.update-item strong {
-  display: block;
-  margin-bottom: 6px;
+.project-stat {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  color: #e4f1ff;
   font-size: 12px;
-  color: #9fd9ff;
-  letter-spacing: 0.04em;
-}
-
-.update-item p {
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--muted-strong);
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .progress-row {
-  margin-bottom: 16px;
+  align-items: center;
+  margin-bottom: 14px;
 }
 
 .progress-bar {
@@ -891,25 +887,95 @@ button:active {
 }
 
 .progress-text {
-  min-width: 74px;
+  min-width: 48px;
   font-size: 14px;
   color: #dbf6ff;
 }
 
-.task-columns {
+.project-focus {
   display: grid;
-  grid-template-columns: 1fr;
   gap: 12px;
-}
-
-.task-column {
-  padding: 16px;
-  border-radius: 22px;
-}
-
-.task-column h4 {
   margin-bottom: 12px;
-  font-size: 15px;
+}
+
+.project-focus-card {
+  padding: 14px;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.project-focus-card strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #9fd9ff;
+}
+
+.project-focus-card p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted-strong);
+}
+
+.project-task-preview,
+.project-detail-list {
+  display: grid;
+  gap: 10px;
+}
+
+.project-task-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.project-task-row span {
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.project-task-row em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.project-details {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.project-details summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.project-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.project-details summary::after {
+  content: "展开";
+  float: right;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.project-details[open] summary::after {
+  content: "收起";
+}
+
+.project-details[open] .project-detail-list {
+  padding: 0 14px 14px;
 }
 
 .task-list {
@@ -1079,7 +1145,7 @@ button:active {
     top: 92px;
   }
 
-  .task-columns {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .project-focus {
+    grid-template-columns: 1.1fr 0.9fr;
   }
 }

@@ -311,53 +311,41 @@ function renderOwnerOptions() {
   ownerFilter.value = owners.includes(currentValue) ? currentValue : "";
 }
 
-function taskColumn(project, status) {
-  const column = document.createElement("section");
-  column.className = "task-column";
+function renderTaskItem(project, task) {
+  const fragment = taskItemTemplate.content.cloneNode(true);
+  const item = fragment.querySelector(".task-item");
+  fragment.querySelector(".task-title").textContent = task.title;
+  fragment.querySelector(".task-assignee").textContent = `负责人：${task.assignee || "未指定"}`;
+  fragment.querySelector(".task-note").textContent = task.note || "暂无备注";
 
-  const tasks = project.tasks.filter((task) => task.status === status);
-  const title = document.createElement("h4");
-  title.textContent = `${status} · ${tasks.length}`;
-  column.appendChild(title);
+  const pill = fragment.querySelector(".priority-pill");
+  pill.textContent = task.priority;
+  pill.classList.add(
+    task.priority === "高"
+      ? "priority-high"
+      : task.priority === "中"
+        ? "priority-medium"
+        : "priority-low"
+  );
 
-  const list = document.createElement("div");
-  list.className = "task-list";
+  const select = fragment.querySelector(".task-status-select");
+  select.value = task.status;
+  select.addEventListener("change", () => updateTaskStatus(project.id, task.id, select.value));
 
-  if (!tasks.length) {
-    const empty = document.createElement("p");
-    empty.className = "column-empty";
-    empty.textContent = "暂无任务";
-    list.appendChild(empty);
-  } else {
-    tasks.forEach((task) => {
-      const fragment = taskItemTemplate.content.cloneNode(true);
-      const item = fragment.querySelector(".task-item");
-      fragment.querySelector(".task-title").textContent = task.title;
-      fragment.querySelector(".task-assignee").textContent = `负责人：${task.assignee || "未指定"}`;
-      fragment.querySelector(".task-note").textContent = task.note || "暂无备注";
+  fragment.querySelector(".delete-task").addEventListener("click", () => deleteTask(project.id, task.id));
+  item.dataset.taskId = task.id;
+  return fragment;
+}
 
-      const pill = fragment.querySelector(".priority-pill");
-      pill.textContent = task.priority;
-      pill.classList.add(
-        task.priority === "高"
-          ? "priority-high"
-          : task.priority === "中"
-            ? "priority-medium"
-            : "priority-low"
-      );
+function prioritizedTasks(project) {
+  return [...project.tasks].sort((a, b) => {
+    const statusWeight = (task) =>
+      task.status === "进行中" ? 0 : task.status === "待处理" ? 1 : 2;
+    const priorityWeight = (task) =>
+      task.priority === "高" ? 0 : task.priority === "中" ? 1 : 2;
 
-      const select = fragment.querySelector(".task-status-select");
-      select.value = task.status;
-      select.addEventListener("change", () => updateTaskStatus(project.id, task.id, select.value));
-
-      fragment.querySelector(".delete-task").addEventListener("click", () => deleteTask(project.id, task.id));
-      item.dataset.taskId = task.id;
-      list.appendChild(fragment);
-    });
-  }
-
-  column.appendChild(list);
-  return column;
+    return statusWeight(a) - statusWeight(b) || priorityWeight(a) - priorityWeight(b);
+  });
 }
 
 function renderBoard() {
@@ -376,33 +364,64 @@ function renderBoard() {
   projects.forEach((project) => {
     ensureProjectShape(project);
     const fragment = projectCardTemplate.content.cloneNode(true);
+    const doneCount = completedTasks(project).length;
+    const pendingCount = pendingTasks(project).length;
+    const updates = latestUpdates(project, 1);
+    const tasks = prioritizedTasks(project);
+    const previewTasks = tasks.filter((task) => task.status !== "已完成").slice(0, 3);
+
     fragment.querySelector(".project-tag").textContent = "AI / DeepSeek 项目";
     fragment.querySelector(".project-title").textContent = project.name;
     fragment.querySelector(".project-meta").textContent =
       `负责人：${project.owner} · 截止：${project.deadline || "未设置"}`;
     fragment.querySelector(".project-summary").textContent = project.summary || "暂无说明";
-
-    const updates = latestUpdates(project);
-    const summaryNode = fragment.querySelector(".project-summary");
-    if (updates.length) {
-      const updatesWrap = document.createElement("div");
-      updatesWrap.className = "project-updates";
-      updates.forEach((update) => {
-        const item = document.createElement("article");
-        item.className = "update-item";
-        item.innerHTML = `<strong>${update.createdAt}</strong><p>${update.content}</p>`;
-        updatesWrap.appendChild(item);
-      });
-      summaryNode.insertAdjacentElement("afterend", updatesWrap);
-    }
+    fragment.querySelector(".project-stats").innerHTML = [
+      `任务 ${project.tasks.length}`,
+      `已完成 ${doneCount}`,
+      `待推进 ${pendingCount}`
+    ]
+      .map((item) => `<span class="project-stat">${item}</span>`)
+      .join("");
 
     const progress = projectProgress(project);
     fragment.querySelector(".progress-bar span").style.width = `${progress}%`;
-    fragment.querySelector(".progress-text").textContent = `${progress}% 完成`;
+    fragment.querySelector(".progress-text").textContent = `${progress}%`;
+
+    const focus = fragment.querySelector(".project-focus");
+    if (updates[0]) {
+      const item = document.createElement("article");
+      item.className = "project-focus-card";
+      item.innerHTML = `<strong>最新进展</strong><p>${updates[0].content}</p>`;
+      focus.appendChild(item);
+    }
+
+    const tasksCard = document.createElement("article");
+    tasksCard.className = "project-focus-card";
+    tasksCard.innerHTML = `<strong>关键任务</strong>`;
+    const taskPreview = document.createElement("div");
+    taskPreview.className = "project-task-preview";
+
+    if (!previewTasks.length) {
+      const empty = document.createElement("p");
+      empty.className = "column-empty";
+      empty.textContent = "暂无待推进任务";
+      taskPreview.appendChild(empty);
+    } else {
+      previewTasks.forEach((task) => {
+        const row = document.createElement("div");
+        row.className = "project-task-row";
+        row.innerHTML = `<span>${task.title}</span><em>${task.status}</em>`;
+        taskPreview.appendChild(row);
+      });
+    }
+    tasksCard.appendChild(taskPreview);
+    focus.appendChild(tasksCard);
 
     fragment.querySelector(".delete-project").addEventListener("click", () => deleteProject(project.id));
-    const columns = fragment.querySelector(".task-columns");
-    STATUSES.forEach((status) => columns.appendChild(taskColumn(project, status)));
+    const detailList = fragment.querySelector(".project-detail-list");
+    tasks.forEach((task) => {
+      detailList.appendChild(renderTaskItem(project, task));
+    });
     projectBoard.appendChild(fragment);
   });
 }
