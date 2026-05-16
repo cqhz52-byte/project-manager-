@@ -13,7 +13,7 @@
   <title>DeepSeek 项目台</title>
   <script>
     (function () {
-      const APP_BOOT_VERSION = "v0.9.0";
+      const APP_BOOT_VERSION = "v0.10.0";
       const VERSION_KEY = "simple-project-manager-shell-version";
       const RELOAD_KEY = "simple-project-manager-version-reload";
       const url = new URL(window.location.href);
@@ -35,10 +35,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap" rel="stylesheet">
-  <link rel="manifest" href="./manifest.webmanifest?v=v0.9.0">
+  <link rel="manifest" href="./manifest.webmanifest?v=v0.10.0">
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=v0.9.0">
+  <link rel="stylesheet" href="./styles.css?v=v0.10.0">
 </head>
 <body>
   <div class="release-bar">
@@ -51,6 +51,16 @@
         <span id="versionMeta" class="release-meta">正在读取版本信息</span>
         <button id="installAppButton" class="ghost install-button is-hidden" type="button">安装桌面版</button>
       </div>
+    </div>
+  </div>
+  <div id="updateBanner" class="update-banner is-hidden" role="status" aria-live="polite">
+    <div class="update-banner-inner">
+      <div class="update-banner-copy">
+        <span class="update-pill">发现新版本</span>
+        <strong id="updateBannerTitle">检测到可更新版本</strong>
+        <p id="updateBannerText">点击更新后会刷新到最新版本。</p>
+      </div>
+      <button id="updateAppButton" type="button">立即更新</button>
     </div>
   </div>
   <div class="shell">
@@ -330,6 +340,6 @@
   </template>
 
   <script type="text/javascript" src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <script src="./app.js?v=v0.9.0"></script>
+  <script src="./app.js?v=v0.10.0"></script>
 </body>
 </html>

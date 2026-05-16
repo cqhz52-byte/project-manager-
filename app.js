@@ -2,10 +2,11 @@ const STORAGE_KEY = "simple-project-manager-data-v3";
 const STATUSES = ["待处理", "进行中", "已完成"];
 const DEFAULT_OWNER = "小陈";
 const INSTALL_DISMISSED_KEY = "simple-project-manager-install-dismissed-v1";
+const VERSION_ENDPOINT = "./version.json";
 const APP_VERSION = {
-  number: "v0.9.0",
+  number: "v0.10.0",
   updatedAt: "2026-05-16",
-  summary: "支持 PWA 安装、桌面启动和基础离线缓存"
+  summary: "支持新版本检测和手动更新提示"
 };
 
 const seedData = {
@@ -107,6 +108,10 @@ const aiResult = document.querySelector("#aiResult");
 const versionTag = document.querySelector("#versionTag");
 const versionMeta = document.querySelector("#versionMeta");
 const installAppButton = document.querySelector("#installAppButton");
+const updateBanner = document.querySelector("#updateBanner");
+const updateBannerTitle = document.querySelector("#updateBannerTitle");
+const updateBannerText = document.querySelector("#updateBannerText");
+const updateAppButton = document.querySelector("#updateAppButton");
 const voiceButton = document.querySelector("#voiceButton");
 const voiceStatus = document.querySelector("#voiceStatus");
 const quickChips = document.querySelector("#quickChips");
@@ -127,6 +132,7 @@ let voiceRestartTimer = null;
 let shouldKeepListening = false;
 let shouldSubmitAfterStop = false;
 let deferredInstallPrompt = null;
+let availableUpdateVersion = null;
 
 function ensureProjectShape(project) {
   if (!Array.isArray(project.tasks)) project.tasks = [];
@@ -443,6 +449,74 @@ function renderVersionInfo() {
   versionMeta.textContent = `${APP_VERSION.updatedAt} · ${APP_VERSION.summary}`;
 }
 
+function setUpdateBannerVisible(visible) {
+  if (!updateBanner) return;
+  updateBanner.classList.toggle("is-hidden", !visible);
+}
+
+function updateVersionBanner(version, summary = "") {
+  availableUpdateVersion = version;
+  if (updateBannerTitle) updateBannerTitle.textContent = `发现 ${version} 新版本`;
+  if (updateBannerText) {
+    updateBannerText.textContent = summary
+      ? `${summary}，点击后刷新到最新版。`
+      : "点击更新后会刷新到最新版本。";
+  }
+  setUpdateBannerVisible(true);
+}
+
+async function clearAppCaches() {
+  if ("caches" in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map((key) => caches.delete(key)));
+  }
+}
+
+async function applyAvailableUpdate() {
+  const targetVersion = availableUpdateVersion || APP_VERSION.number;
+
+  try {
+    if ("serviceWorker" in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.update()));
+    }
+
+    await clearAppCaches();
+  } catch (error) {
+    console.error("Failed to prepare app update:", error);
+  }
+
+  const url = new URL(window.location.href);
+  url.searchParams.set("appVersion", targetVersion);
+  url.searchParams.set("updatedAt", String(Date.now()));
+  window.location.replace(url.toString());
+}
+
+async function fetchLatestVersion() {
+  try {
+    const response = await fetch(`${VERSION_ENDPOINT}?ts=${Date.now()}`, {
+      cache: "no-store"
+    });
+    if (!response.ok) return null;
+    return response.json();
+  } catch {
+    return null;
+  }
+}
+
+async function checkForAppUpdates() {
+  const latest = await fetchLatestVersion();
+  if (!latest?.number) return;
+
+  if (latest.number !== APP_VERSION.number) {
+    updateVersionBanner(latest.number, latest.summary || "");
+    return;
+  }
+
+  availableUpdateVersion = null;
+  setUpdateBannerVisible(false);
+}
+
 function isStandaloneMode() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 }
@@ -484,7 +558,7 @@ async function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
 
   try {
-    await navigator.serviceWorker.register("./sw.js?v=v0.9.0");
+    await navigator.serviceWorker.register("./sw.js?v=v0.10.0");
   } catch (error) {
     console.error("Service worker registration failed:", error);
   }
@@ -1215,6 +1289,10 @@ if (installAppButton) {
   installAppButton.addEventListener("click", installApp);
 }
 
+if (updateAppButton) {
+  updateAppButton.addEventListener("click", applyAvailableUpdate);
+}
+
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
   deferredInstallPrompt = event;
@@ -1228,6 +1306,12 @@ window.addEventListener("appinstalled", () => {
   syncInstallUI();
 });
 
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    checkForAppUpdates();
+  }
+});
+
 function syncResponsivePanels() {
   if (!secondaryTools) return;
   secondaryTools.open = window.innerWidth >= 760;
@@ -1239,3 +1323,4 @@ renderVersionInfo();
 renderBoard();
 syncInstallUI();
 registerServiceWorker();
+checkForAppUpdates();

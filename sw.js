@@ -1,12 +1,13 @@
-const CACHE_NAME = "deepseek-project-board-v0.9.0";
+const CACHE_NAME = "deepseek-project-board-v0.10.0";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./index.html?appVersion=v0.9.0",
-  "./styles.css?v=v0.9.0",
-  "./app.js?v=v0.9.0",
-  "./manifest.webmanifest?v=v0.9.0",
+  "./index.html?appVersion=v0.10.0",
+  "./styles.css?v=v0.10.0",
+  "./app.js?v=v0.10.0",
+  "./manifest.webmanifest?v=v0.10.0",
   "./manifest.webmanifest",
+  "./version.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-maskable-192.png",
@@ -35,6 +36,11 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  if (url.pathname.endsWith("/version.json") || url.pathname.endsWith("version.json")) {
+    event.respondWith(fetch(request, { cache: "no-store" }));
+    return;
+  }
 
   if (request.mode === "navigate") {
     event.respondWith(

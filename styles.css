@@ -166,6 +166,65 @@ button {
   display: none;
 }
 
+.update-banner {
+  position: sticky;
+  top: 86px;
+  z-index: 35;
+  padding: 12px 18px 0;
+}
+
+.update-banner.is-hidden {
+  display: none;
+}
+
+.update-banner-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: min(100%, 1440px);
+  margin: 0 auto;
+  padding: 14px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(126, 240, 201, 0.22);
+  background:
+    linear-gradient(135deg, rgba(76, 155, 255, 0.16), rgba(55, 214, 195, 0.14)),
+    rgba(7, 17, 31, 0.84);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-soft);
+}
+
+.update-banner-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.update-banner-copy strong {
+  font-size: 15px;
+}
+
+.update-banner-copy p {
+  color: var(--muted-strong);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.update-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: #091423;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #7ef0c9 0%, #8bc6ff 100%);
+}
+
 .shell {
   display: grid;
   grid-template-columns: 1fr;
@@ -1093,6 +1152,17 @@ button:active {
 @media (max-width: 759px) {
   .release-bar {
     padding: 12px 12px 0;
+  }
+
+  .update-banner {
+    top: 108px;
+    padding: 10px 12px 0;
+  }
+
+  .update-banner-inner {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 14px;
   }
 
   .release-bar-inner {
