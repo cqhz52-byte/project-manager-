@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>项目管理</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <p class="eyebrow">Mobile AI Workboard</p>
+        <h1>DeepSeek 项目台</h1>
+        <p class="subtle">手机优先、输入顺手，把想法直接交给 AI 再落成项目和任务。</p>
+      </div>
+
+      <section class="panel ai-panel">
+        <div class="section-head">
+          <div>
+            <p class="mini-label">AI 快速录入</p>
+            <h2>一句话查进度或记进展</h2>
+          </div>
+          <span class="ai-badge">DeepSeek Focus</span>
+        </div>
+        <div class="stack">
+          <label>
+            <span>对 AI 说</span>
+            <textarea
+              id="aiInput"
+              rows="4"
+              placeholder="例如：DeepSeek 销售助手目前完成了什么？ 或 官网改版刚完成首屏文案，帮我记一下进度"
+            ></textarea>
+          </label>
+          <div class="quick-chips" id="quickChips">
+            <button class="chip" type="button" data-prompt="DeepSeek 销售助手目前完成了什么">查项目进度</button>
+            <button class="chip" type="button" data-prompt="AI 官网改版刚完成首屏文案，帮我记一下进度">记录新进展</button>
+            <button class="chip" type="button" data-prompt="DeepSeek 销售助手下一步要做什么">问下一步</button>
+          </div>
+          <div class="split actions-split">
+            <button id="aiCreateButton" type="button">AI 执行指令</button>
+            <button id="aiFillProjectButton" class="ghost" type="button">填入项目表单</button>
+          </div>
+          <div id="aiFeedback" class="ai-feedback">AI 会优先判断你是在查项目进度、询问下一步，还是要把新的项目进展自动记进系统。</div>
+          <div id="aiResult" class="ai-result" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="panel form-panel">
+        <div class="section-head">
+          <h2>补充项目</h2>
+        </div>
+        <form id="projectForm" class="stack">
+          <label>
+            <span>项目名</span>
+            <input id="projectName" name="name" type="text" placeholder="例如：DeepSeek 智能客服" required>
+          </label>
+          <label>
+            <span>负责人</span>
+            <input id="projectOwner" name="owner" type="text" placeholder="例如：小陈" required>
+          </label>
+          <label>
+            <span>截止日期</span>
+            <input id="projectDeadline" name="deadline" type="date">
+          </label>
+          <label>
+            <span>说明</span>
+            <textarea id="projectSummary" name="summary" rows="3" placeholder="项目背景、关键目标、交付内容"></textarea>
+          </label>
+          <button type="submit">添加项目</button>
+        </form>
+      </section>
+
+      <section class="panel form-panel">
+        <div class="section-head">
+          <h2>补充任务</h2>
+        </div>
+        <form id="taskForm" class="stack">
+          <label>
+            <span>所属项目</span>
+            <select id="taskProject" name="projectId" required></select>
+          </label>
+          <label>
+            <span>任务名</span>
+            <input id="taskTitle" name="title" type="text" placeholder="例如：补需求说明" required>
+          </label>
+          <label>
+            <span>负责人</span>
+            <input id="taskAssignee" name="assignee" type="text" placeholder="默认跟项目负责人一致">
+          </label>
+          <div class="split">
+            <label>
+              <span>优先级</span>
+              <select id="taskPriority" name="priority">
+                <option value="高">高</option>
+                <option value="中" selected>中</option>
+                <option value="低">低</option>
+              </select>
+            </label>
+            <label>
+              <span>状态</span>
+              <select id="taskStatus" name="status">
+                <option value="待处理" selected>待处理</option>
+                <option value="进行中">进行中</option>
+                <option value="已完成">已完成</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            <span>备注</span>
+            <textarea id="taskNote" name="note" rows="3" placeholder="阻塞点、下一步、外部依赖"></textarea>
+          </label>
+          <button type="submit">添加任务</button>
+        </form>
+      </section>
+    </aside>
+
+    <main class="main">
+      <section class="hero panel">
+        <div>
+          <p class="mini-label">AI 驱动项目管理</p>
+          <h2>不是填表，而是像问助手一样管理项目</h2>
+          <p class="subtle">拿起手机说一句“这个项目现在做到了哪”，系统就能识别项目、总结已完成内容、判断下一步，还能把新的进展自动归档。</p>
+        </div>
+        <div class="hero-points">
+          <span>一句话查进度</span>
+          <span>一句话记进展</span>
+          <span>自动识别项目</span>
+        </div>
+      </section>
+
+      <header class="topbar">
+        <div class="search-wrap">
+          <input id="searchInput" type="search" placeholder="搜索项目、负责人、任务、AI需求">
+        </div>
+        <div class="filters">
+          <select id="ownerFilter">
+            <option value="">全部负责人</option>
+          </select>
+          <select id="statusFilter">
+            <option value="">全部状态</option>
+            <option value="待处理">待处理</option>
+            <option value="进行中">进行中</option>
+            <option value="已完成">已完成</option>
+          </select>
+        </div>
+      </header>
+
+      <section class="metrics" id="metrics"></section>
+
+      <section class="panel board-panel">
+        <div class="section-head">
+          <h2>项目总览</h2>
+          <button id="resetData" class="ghost" type="button">恢复示例数据</button>
+        </div>
+        <div id="projectBoard" class="project-board"></div>
+      </section>
+    </main>
+  </div>
+
+  <template id="projectCardTemplate">
+    <article class="project-card">
+      <div class="project-header">
+        <div>
+          <p class="project-tag"></p>
+          <h3 class="project-title"></h3>
+          <p class="project-meta"></p>
+        </div>
+        <button class="delete-project ghost danger" type="button">删除项目</button>
+      </div>
+      <p class="project-summary"></p>
+      <div class="progress-row">
+        <div class="progress-bar"><span></span></div>
+        <strong class="progress-text"></strong>
+      </div>
+      <div class="task-columns"></div>
+    </article>
+  </template>
+
+  <template id="taskItemTemplate">
+    <article class="task-item">
+      <div class="task-topline">
+        <strong class="task-title"></strong>
+        <span class="priority-pill"></span>
+      </div>
+      <p class="task-assignee"></p>
+      <p class="task-note"></p>
+      <div class="task-actions">
+        <select class="task-status-select">
+          <option value="待处理">待处理</option>
+          <option value="进行中">进行中</option>
+          <option value="已完成">已完成</option>
+        </select>
+        <button class="delete-task ghost danger" type="button">删除</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="./app.js"></script>
+</body>
+</html>
