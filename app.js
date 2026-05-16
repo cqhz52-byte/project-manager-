@@ -1,10 +1,11 @@
 const STORAGE_KEY = "simple-project-manager-data-v3";
 const STATUSES = ["待处理", "进行中", "已完成"];
 const DEFAULT_OWNER = "小陈";
+const INSTALL_DISMISSED_KEY = "simple-project-manager-install-dismissed-v1";
 const APP_VERSION = {
-  number: "v0.8.0",
+  number: "v0.9.0",
   updatedAt: "2026-05-16",
-  summary: "收敛首屏文案，强化 AI 产品感"
+  summary: "支持 PWA 安装、桌面启动和基础离线缓存"
 };
 
 const seedData = {
@@ -105,6 +106,7 @@ const aiFeedback = document.querySelector("#aiFeedback");
 const aiResult = document.querySelector("#aiResult");
 const versionTag = document.querySelector("#versionTag");
 const versionMeta = document.querySelector("#versionMeta");
+const installAppButton = document.querySelector("#installAppButton");
 const voiceButton = document.querySelector("#voiceButton");
 const voiceStatus = document.querySelector("#voiceStatus");
 const quickChips = document.querySelector("#quickChips");
@@ -124,6 +126,7 @@ let voiceStartTimer = null;
 let voiceRestartTimer = null;
 let shouldKeepListening = false;
 let shouldSubmitAfterStop = false;
+let deferredInstallPrompt = null;
 
 function ensureProjectShape(project) {
   if (!Array.isArray(project.tasks)) project.tasks = [];
@@ -438,6 +441,78 @@ function setAiResult(html = "") {
 function renderVersionInfo() {
   versionTag.textContent = APP_VERSION.number;
   versionMeta.textContent = `${APP_VERSION.updatedAt} · ${APP_VERSION.summary}`;
+}
+
+function isStandaloneMode() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+function setInstallButtonVisible(visible) {
+  if (!installAppButton) return;
+  installAppButton.classList.toggle("is-hidden", !visible);
+}
+
+function setInstallButtonLabel(label) {
+  if (!installAppButton) return;
+  installAppButton.textContent = label;
+}
+
+function syncInstallUI() {
+  if (isStandaloneMode()) {
+    setInstallButtonVisible(true);
+    setInstallButtonLabel("已安装桌面版");
+    installAppButton.disabled = true;
+    return;
+  }
+
+  if (deferredInstallPrompt) {
+    setInstallButtonVisible(true);
+    setInstallButtonLabel("安装桌面版");
+    installAppButton.disabled = false;
+    return;
+  }
+
+  if (localStorage.getItem(INSTALL_DISMISSED_KEY) === "1") {
+    setInstallButtonVisible(false);
+    return;
+  }
+
+  setInstallButtonVisible(false);
+}
+
+async function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+
+  try {
+    await navigator.serviceWorker.register("./sw.js?v=v0.9.0");
+  } catch (error) {
+    console.error("Service worker registration failed:", error);
+  }
+}
+
+async function installApp() {
+  if (isStandaloneMode()) {
+    setAiFeedback("当前已经是桌面版窗口。");
+    return;
+  }
+
+  if (!deferredInstallPrompt) {
+    setAiFeedback("当前环境还没有给出安装提示，通常需要通过 HTTPS 或 GitHub Pages 打开。");
+    return;
+  }
+
+  deferredInstallPrompt.prompt();
+  const choice = await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+
+  if (choice.outcome === "accepted") {
+    setAiFeedback("桌面版安装已开始。");
+  } else {
+    localStorage.setItem(INSTALL_DISMISSED_KEY, "1");
+    setAiFeedback("你这次取消了安装，后续刷新页面后仍可再次安装。");
+  }
+
+  syncInstallUI();
 }
 
 function setVoiceStatus(message) {
@@ -1136,6 +1211,23 @@ quickChips.addEventListener("click", (event) => {
   setAiFeedback("示例指令已填入，你可以直接执行；真实使用时更适合直接说出来。");
 });
 
+if (installAppButton) {
+  installAppButton.addEventListener("click", installApp);
+}
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  localStorage.removeItem(INSTALL_DISMISSED_KEY);
+  syncInstallUI();
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  setAiFeedback("桌面版已安装，可以从桌面或启动器直接打开。");
+  syncInstallUI();
+});
+
 function syncResponsivePanels() {
   if (!secondaryTools) return;
   secondaryTools.open = window.innerWidth >= 760;
@@ -1145,3 +1237,5 @@ window.addEventListener("resize", syncResponsivePanels);
 syncResponsivePanels();
 renderVersionInfo();
 renderBoard();
+syncInstallUI();
+registerServiceWorker();

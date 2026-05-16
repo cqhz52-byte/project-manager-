@@ -102,6 +102,12 @@ button {
   gap: 12px;
 }
 
+.release-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .release-label,
 .eyebrow,
 .mini-label,
@@ -148,6 +154,16 @@ button {
   font-size: 13px;
   line-height: 1.5;
   text-align: right;
+}
+
+.install-button {
+  min-height: 40px;
+  padding: 0 16px;
+  white-space: nowrap;
+}
+
+.install-button.is-hidden {
+  display: none;
 }
 
 .shell {
@@ -1092,6 +1108,12 @@ button:active {
 
   .release-meta {
     text-align: left;
+  }
+
+  .release-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .shell {

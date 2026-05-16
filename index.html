@@ -6,10 +6,14 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>项目管理</title>
+  <meta name="theme-color" content="#07111f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DeepSeek 项目台">
+  <title>DeepSeek 项目台</title>
   <script>
     (function () {
-      const APP_BOOT_VERSION = "v0.8.0";
+      const APP_BOOT_VERSION = "v0.9.0";
       const VERSION_KEY = "simple-project-manager-shell-version";
       const RELOAD_KEY = "simple-project-manager-version-reload";
       const url = new URL(window.location.href);
@@ -17,27 +21,12 @@
       const storedVersion = localStorage.getItem(VERSION_KEY);
       const reloadedForVersion = sessionStorage.getItem(RELOAD_KEY);
 
-      async function clearBrowserCaches() {
-        if ("caches" in window) {
-          const keys = await caches.keys();
-          await Promise.all(keys.map((key) => caches.delete(key)));
-        }
-
-        if ("serviceWorker" in navigator) {
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          await Promise.all(registrations.map((registration) => registration.unregister()));
-        }
-      }
-
       if (storedVersion !== APP_BOOT_VERSION || activeVersion !== APP_BOOT_VERSION) {
         localStorage.setItem(VERSION_KEY, APP_BOOT_VERSION);
         sessionStorage.setItem(RELOAD_KEY, APP_BOOT_VERSION);
-
-        clearBrowserCaches().finally(() => {
-          if (reloadedForVersion === APP_BOOT_VERSION && activeVersion === APP_BOOT_VERSION) return;
-          url.searchParams.set("appVersion", APP_BOOT_VERSION);
-          window.location.replace(url.toString());
-        });
+        if (reloadedForVersion === APP_BOOT_VERSION && activeVersion === APP_BOOT_VERSION) return;
+        url.searchParams.set("appVersion", APP_BOOT_VERSION);
+        window.location.replace(url.toString());
       } else if (reloadedForVersion === APP_BOOT_VERSION) {
         sessionStorage.removeItem(RELOAD_KEY);
       }
@@ -46,7 +35,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=v0.8.0">
+  <link rel="manifest" href="./manifest.webmanifest?v=v0.9.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css?v=v0.9.0">
 </head>
 <body>
   <div class="release-bar">
@@ -55,7 +47,10 @@
         <span class="release-label">当前版本</span>
         <strong id="versionTag" class="release-version">版本加载中</strong>
       </div>
-      <span id="versionMeta" class="release-meta">正在读取版本信息</span>
+      <div class="release-actions">
+        <span id="versionMeta" class="release-meta">正在读取版本信息</span>
+        <button id="installAppButton" class="ghost install-button is-hidden" type="button">安装桌面版</button>
+      </div>
     </div>
   </div>
   <div class="shell">
@@ -335,6 +330,6 @@
   </template>
 
   <script type="text/javascript" src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <script src="./app.js?v=v0.8.0"></script>
+  <script src="./app.js?v=v0.9.0"></script>
 </body>
 </html>

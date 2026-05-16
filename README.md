@@ -12,6 +12,12 @@
 
 直接打开 `index.html` 即可。
 
+## PWA
+
+- 已支持 `manifest.webmanifest`
+- 已注册 `sw.js`，提供基础离线缓存
+- 在支持的浏览器和 HTTPS 环境下，可安装为桌面应用
+
 ## 发布
 
 仓库已包含 GitHub Pages 工作流，推送到默认分支后会自动发布静态页面。
