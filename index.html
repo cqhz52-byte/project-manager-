@@ -3,14 +3,56 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>项目管理</title>
-  <link rel="stylesheet" href="./styles.css">
+  <script>
+    (function () {
+      const APP_BOOT_VERSION = "v0.7.2";
+      const VERSION_KEY = "simple-project-manager-shell-version";
+      const RELOAD_KEY = "simple-project-manager-version-reload";
+      const url = new URL(window.location.href);
+      const activeVersion = url.searchParams.get("appVersion");
+      const storedVersion = localStorage.getItem(VERSION_KEY);
+      const reloadedForVersion = sessionStorage.getItem(RELOAD_KEY);
+
+      async function clearBrowserCaches() {
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map((key) => caches.delete(key)));
+        }
+
+        if ("serviceWorker" in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map((registration) => registration.unregister()));
+        }
+      }
+
+      if (storedVersion !== APP_BOOT_VERSION || activeVersion !== APP_BOOT_VERSION) {
+        localStorage.setItem(VERSION_KEY, APP_BOOT_VERSION);
+        sessionStorage.setItem(RELOAD_KEY, APP_BOOT_VERSION);
+
+        clearBrowserCaches().finally(() => {
+          if (reloadedForVersion === APP_BOOT_VERSION && activeVersion === APP_BOOT_VERSION) return;
+          url.searchParams.set("appVersion", APP_BOOT_VERSION);
+          window.location.replace(url.toString());
+        });
+      } else if (reloadedForVersion === APP_BOOT_VERSION) {
+        sessionStorage.removeItem(RELOAD_KEY);
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="./styles.css?v=v0.7.2">
 </head>
 <body>
   <div class="release-bar">
     <div class="release-bar-inner">
-      <strong id="versionTag">版本加载中</strong>
-      <span id="versionMeta">正在读取版本信息</span>
+      <div class="release-copy">
+        <span class="release-label">当前版本</span>
+        <strong id="versionTag" class="release-version">版本加载中</strong>
+      </div>
+      <span id="versionMeta" class="release-meta">正在读取版本信息</span>
     </div>
   </div>
   <div class="shell">
@@ -251,6 +293,6 @@
   </template>
 
   <script type="text/javascript" src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <script src="./app.js"></script>
+  <script src="./app.js?v=v0.7.2"></script>
 </body>
 </html>
