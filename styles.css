@@ -261,8 +261,8 @@ button:hover {
   position: relative;
   display: grid;
   place-items: center;
-  width: 110px;
-  height: 110px;
+  width: 124px;
+  height: 124px;
   padding: 0;
   border-radius: 999px;
   background: linear-gradient(135deg, var(--deepseek) 0%, #3ab49c 100%);
@@ -283,7 +283,7 @@ button:hover {
 .voice-core {
   position: relative;
   z-index: 1;
-  width: 66px;
+  width: 74px;
   text-align: center;
   line-height: 1.2;
   font-size: 14px;
@@ -301,7 +301,7 @@ button:hover {
 }
 
 .transcript-panel textarea {
-  min-height: 110px;
+  min-height: 88px;
 }
 
 .quick-chips {
@@ -350,6 +350,48 @@ button:hover {
 .ai-result.is-visible {
   display: grid;
   gap: 12px;
+}
+
+.secondary-tools,
+.fallback-details {
+  border: 1px solid rgba(75, 61, 46, 0.1);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.secondary-tools summary,
+.fallback-details summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.secondary-tools summary::-webkit-details-marker,
+.fallback-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.secondary-tools summary::after,
+.fallback-details summary::after {
+  content: "展开";
+  float: right;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.secondary-tools[open] summary::after,
+.fallback-details[open] summary::after {
+  content: "收起";
+}
+
+.secondary-tools-body,
+.fallback-details-body {
+  display: grid;
+  gap: 12px;
+  padding: 0 14px 14px;
 }
 
 .ai-result-card {
@@ -631,13 +673,77 @@ button:hover {
   .metrics {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
+
+  .secondary-tools[open],
+  .fallback-details[open] {
+    background: rgba(255, 255, 255, 0.68);
+  }
 }
 
 @media (max-width: 759px) {
+  .brand .subtle,
+  .hero,
+  .topbar,
+  .metrics {
+    display: none;
+  }
+
+  .shell {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .ai-panel,
+  .board-panel,
+  .fallback-details {
+    padding: 16px;
+    border-radius: 22px;
+  }
+
   .voice-stage {
     grid-template-columns: 1fr;
     justify-items: center;
     text-align: center;
+    padding: 18px 14px;
+  }
+
+  .voice-status {
+    font-size: 14px;
+  }
+
+  .section-head {
+    margin-bottom: 12px;
+  }
+
+  .section-head h2 {
+    font-size: 22px;
+  }
+
+  .project-card {
+    padding: 16px;
+  }
+
+  .project-title {
+    font-size: 20px;
+  }
+
+  .project-header,
+  .progress-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .delete-project {
+    width: 100%;
+  }
+
+  .progress-text {
+    min-width: 0;
+  }
+
+  .secondary-tools summary,
+  .fallback-details summary {
+    padding: 12px 14px;
   }
 }
 
