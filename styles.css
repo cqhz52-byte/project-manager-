@@ -115,6 +115,10 @@ h2 {
   padding: 18px;
 }
 
+.fallback-panel {
+  opacity: 0.72;
+}
+
 .section-head {
   display: flex;
   align-items: flex-start;
@@ -238,6 +242,66 @@ button:hover {
   font-size: 12px;
   color: var(--deepseek);
   background: var(--deepseek-soft);
+}
+
+.voice-stage {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(13, 138, 114, 0.18), transparent 8rem),
+    linear-gradient(160deg, rgba(248, 255, 252, 0.96), rgba(255, 244, 234, 0.94));
+  border: 1px solid rgba(13, 138, 114, 0.12);
+}
+
+.voice-button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 110px;
+  height: 110px;
+  padding: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--deepseek) 0%, #3ab49c 100%);
+  box-shadow: 0 18px 36px rgba(13, 138, 114, 0.22);
+}
+
+.voice-button.is-listening {
+  animation: pulse-voice 1.6s ease-in-out infinite;
+}
+
+.voice-ring {
+  position: absolute;
+  inset: 8px;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.44);
+}
+
+.voice-core {
+  position: relative;
+  z-index: 1;
+  width: 66px;
+  text-align: center;
+  line-height: 1.2;
+  font-size: 14px;
+}
+
+.voice-title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.voice-status {
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.transcript-panel textarea {
+  min-height: 110px;
 }
 
 .quick-chips {
@@ -535,6 +599,19 @@ button:hover {
   color: var(--muted);
 }
 
+@keyframes pulse-voice {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 18px 36px rgba(13, 138, 114, 0.22);
+  }
+
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 24px 48px rgba(13, 138, 114, 0.3);
+  }
+}
+
 @media (min-width: 760px) {
   .shell {
     padding: 24px;
@@ -553,6 +630,14 @@ button:hover {
 
   .metrics {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 759px) {
+  .voice-stage {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
   }
 }
 
