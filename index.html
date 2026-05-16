@@ -10,45 +10,59 @@
   <div class="shell">
     <aside class="sidebar">
       <div class="brand">
-        <p class="eyebrow">Mobile AI Workboard</p>
+        <p class="eyebrow">Voice First AI Workboard</p>
         <h1>DeepSeek 项目台</h1>
-        <p class="subtle">手机优先、输入顺手，把想法直接交给 AI 再落成项目和任务。</p>
+        <p class="subtle">不需要键盘，直接说话。AI 负责识别项目、更新进展、修改信息和整理下一步。</p>
       </div>
 
       <section class="panel ai-panel">
         <div class="section-head">
           <div>
-            <p class="mini-label">AI 快速录入</p>
-            <h2>一句话查进度或记进展</h2>
+            <p class="mini-label">无键盘管理</p>
+            <h2>按一下，说一句，系统自动处理</h2>
           </div>
           <span class="ai-badge">DeepSeek Focus</span>
         </div>
         <div class="stack">
-          <label>
-            <span>对 AI 说</span>
+          <div class="voice-stage">
+            <button id="voiceButton" class="voice-button" type="button" aria-pressed="false">
+              <span class="voice-ring"></span>
+              <span class="voice-core">按住说话</span>
+            </button>
+            <div class="voice-copy">
+              <p class="voice-title">语音优先 AI 指挥台</p>
+              <p id="voiceStatus" class="voice-status">点击后开始说话。比如：“DeepSeek 销售助手目前完成了什么”</p>
+            </div>
+          </div>
+          <label class="transcript-panel">
+            <span>AI 收到的语音内容</span>
             <textarea
               id="aiInput"
               rows="4"
-              placeholder="例如：DeepSeek 销售助手目前完成了什么？ 或 官网改版刚完成首屏文案，帮我记一下进度"
+              placeholder="这里会自动显示语音识别结果，也可以作为备用文本入口"
             ></textarea>
           </label>
           <div class="quick-chips" id="quickChips">
             <button class="chip" type="button" data-prompt="DeepSeek 销售助手目前完成了什么">查项目进度</button>
             <button class="chip" type="button" data-prompt="AI 官网改版刚完成首屏文案，帮我记一下进度">记录新进展</button>
+            <button class="chip" type="button" data-prompt="把 AI 官网改版负责人改成小陈">修改项目信息</button>
             <button class="chip" type="button" data-prompt="DeepSeek 销售助手下一步要做什么">问下一步</button>
           </div>
           <div class="split actions-split">
             <button id="aiCreateButton" type="button">AI 执行指令</button>
-            <button id="aiFillProjectButton" class="ghost" type="button">填入项目表单</button>
+            <button id="aiFillProjectButton" class="ghost" type="button">同步到备用表单</button>
           </div>
-          <div id="aiFeedback" class="ai-feedback">AI 会优先判断你是在查项目进度、询问下一步，还是要把新的项目进展自动记进系统。</div>
+          <div id="aiFeedback" class="ai-feedback">AI 会优先判断你是在查项目进度、询问下一步、新建项目，还是要把新的进展或修改自动记进系统。</div>
           <div id="aiResult" class="ai-result" aria-live="polite"></div>
         </div>
       </section>
 
-      <section class="panel form-panel">
+      <section class="panel form-panel fallback-panel">
         <div class="section-head">
-          <h2>补充项目</h2>
+          <div>
+            <p class="mini-label">备用入口</p>
+            <h2>手动补充项目</h2>
+          </div>
         </div>
         <form id="projectForm" class="stack">
           <label>
@@ -71,9 +85,12 @@
         </form>
       </section>
 
-      <section class="panel form-panel">
+      <section class="panel form-panel fallback-panel">
         <div class="section-head">
-          <h2>补充任务</h2>
+          <div>
+            <p class="mini-label">备用入口</p>
+            <h2>手动补充任务</h2>
+          </div>
         </div>
         <form id="taskForm" class="stack">
           <label>
@@ -119,13 +136,13 @@
       <section class="hero panel">
         <div>
           <p class="mini-label">AI 驱动项目管理</p>
-          <h2>不是填表，而是像问助手一样管理项目</h2>
-          <p class="subtle">拿起手机说一句“这个项目现在做到了哪”，系统就能识别项目、总结已完成内容、判断下一步，还能把新的进展自动归档。</p>
+          <h2>不是输入系统，而是一个会听懂项目语言的 AI 助手</h2>
+          <p class="subtle">拿起手机说一句“这个项目现在做到了哪”“把负责人改成小陈”“新增一个 AI 客服项目”，系统就会自动识别、执行并归档。</p>
         </div>
         <div class="hero-points">
-          <span>一句话查进度</span>
-          <span>一句话记进展</span>
-          <span>自动识别项目</span>
+          <span>语音创建项目</span>
+          <span>语音修改信息</span>
+          <span>语音更新进度</span>
         </div>
       </section>
 
